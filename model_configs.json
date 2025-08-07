@@ -1,0 +1,33 @@
+[
+    {
+        "model_type": "api",
+        "model_name": "openai_evaluator",
+        "class": "ApiModel",
+        "config": {
+            "provider": "url",
+            "model_identifier": "YOUR_MODEL",
+            "api_key": "YOUR_API_KEY",
+            "base_url": "YOUR_BASE_URL",
+            "concurrency": 1
+        }
+    },
+    {
+        "model_type": "local",
+        "model_name": "qwen_evaluator",
+        "class": "LocalModel",
+        "config": {
+            "model_path": "/path/to/model/Qwen2.5-7B-Instruct",
+            "batch_size": 32,
+            "device_ids": [6, 7],
+            "model_kwargs": {
+                "torch_dtype": "bfloat16",
+                "attn_implementation": "sdpa"
+            },
+            "generation_kwargs": {
+                "max_new_tokens": 300,
+                "temperature": 0.1,
+                "top_p": 0.95
+            }
+        }
+    }
+]

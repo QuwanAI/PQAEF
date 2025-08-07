@@ -1,0 +1,35 @@
+data_loaders:
+  AGNewsDataLoader:
+    class: CSVDataLoader
+    paths:
+    - path/to/ag_news_csv/test.csv
+    recursive: false
+    num: 300
+    formatter_name: AGNewsFormatter
+    encoding: utf-8
+    skip_header: true
+models:
+  openai_evaluator:
+    class: ApiModel
+    name: openai_evaluator
+    config:
+      provider: url
+      model_identifier: YOUR_MODEL
+      api_key: YOUR_API_KEY
+      base_url: YOUR_BASE_URL
+      concurrency: 1
+tasks:
+- task_class: SingleChoiceTask
+  module_path: PQAEF.tasks.single_choice.single_choice_task
+  loader_names:
+  - AGNewsDataLoader
+  config:
+    llm_model_name: openai_evaluator
+    prompt_path: ./src/PQAEF/tasks/single_choice/prompt/agnews.txt
+data_dumper:
+  output_dir: ./output/test
+  file_prefix: cped_annotated
+  chunk_size: 5000
+statistics_generator:
+  analyses_to_run:
+  - single_choice
