@@ -1,111 +1,3 @@
-# import os
-# import asyncio
-# import math
-# from typing import List, Dict, Any, Union
-
-# from .base_model import BaseModel
-# from PQAEF.utils.utils import batch_post_requests_async
-# from PQAEF.constant import constant
-
-# # Lazily import openai
-# try:
-#     import openai
-# except ImportError:
-#     openai = None
-
-# class ApiModel(BaseModel):
-#     """
-#     Handles interactions with external APIs.
-#     Supports OpenAI-compatible endpoints (OpenAI, Claude, Gemini, Grok)
-#     and generic URL endpoints with batching.
-#     """
-
-#     def __init__(self, model_name: str, config: Dict[str, Any]):
-#         super().__init__(model_name, config)
-#         self.provider = self.config['provider']
-
-#         if self.provider == constant.API_PROVIDER_OPENAI:
-#             if openai is None:
-#                 raise ImportError("The 'openai' package is required. Please install it with 'pip install openai'.")
-            
-#             # API key can be from config or fallback to environment variable
-#             api_key = self.config.get('api_key') or os.environ.get(self.config.get('api_key_env_var'))
-#             if not api_key:
-#                 raise ValueError(f"API key for {model_name} not found. Provide it in config or set the '{self.config.get('api_key_env_var')}' environment variable.")
-
-#             # base_url allows targeting any OpenAI-compatible API
-#             base_url = self.config.get('base_url')
-#             self.client = openai.OpenAI(api_key=api_key, base_url=base_url)
-#             self.model_identifier = self.config['model_identifier'] # e.g., "claude-3-opus-20240229"
-#             self.batch_size = self.config.get('batch_size', 1) # For simulating batches
-
-#         elif self.provider == constant.API_PROVIDER_URL:
-#             self.url = self.config['url']
-#             self.headers = self.config.get('headers', {})
-#             self.batch_size = self.config.get('batch_size', 32)
-#             self.concurrency = self.config.get('concurrency', 10)
-        
-#         else:
-#             raise ValueError(f"Unsupported API provider: {self.provider}")
-
-#     def _process_openai_compatible(self, inputs: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[Dict[str, Any]]:
-#         """Processes batches for OpenAI-compatible APIs."""
-#         if not isinstance(inputs, list):
-#             inputs = [inputs]
-
-#         all_results = []
-#         for i in range(0, len(inputs), self.batch_size):
-#             batch = inputs[i:i + self.batch_size]
-#             # Note: OpenAI API itself doesn't have a "batch" endpoint for chat completions.
-#             # We process them sequentially in a loop. For true parallelism, one would
-#             # need to use asyncio with multiple requests, but this loop is simpler
-#             # and respects API rate limits more gracefully.
-#             for single_input in batch:
-#                 try:
-#                     response = self.client.chat.completions.create(model=self.model_identifier, **single_input)
-#                     all_results.append(response.to_dict())
-#                 except Exception as e:
-#                     print(f"API call failed for model {self.model_name}: {e}")
-#                     all_results.append({"error": str(e)})
-#         return all_results
-
-#     def _process_url(self, inputs: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[Dict[str, Any]]:
-#         """Processes batches for generic URL APIs asynchronously."""
-#         if not isinstance(inputs, list):
-#             inputs = [inputs]
-        
-#         all_results = []
-#         # Process in batches to respect server capacity and manage memory
-#         for i in range(0, len(inputs), self.batch_size):
-#             batch_payloads = inputs[i:i + self.batch_size]
-            
-#             try:
-#                 loop = asyncio.get_running_loop()
-#             except RuntimeError:
-#                 loop = asyncio.new_event_loop()
-#                 asyncio.set_event_loop(loop)
-
-#             batch_results = loop.run_until_complete(
-#                 batch_post_requests_async(self.url, batch_payloads, self.headers, self.concurrency)
-#             )
-#             all_results.extend(batch_results)
-        
-#         return all_results
-
-#     def process(self, inputs: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[Dict[str, Any]]:
-#         """
-#         Processes inputs by calling the configured API. Always returns a list of results.
-#         """
-#         if self.provider == constant.API_PROVIDER_OPENAI:
-#             return self._process_openai_compatible(inputs)
-        
-#         elif self.provider == constant.API_PROVIDER_URL:
-#             return self._process_url(inputs)
-
-
-# PQAEF/PQAEF/models/api_model.py
-# PQAEF/PQAEF/models/api_model.py
-
 import os
 import asyncio
 from typing import List, Dict, Any, Union
@@ -115,7 +7,7 @@ from .base_model import BaseModel
 from ..utils.async_utils import batch_post_requests_async, dispatch_openai_requests
 from ..constant import constant
 
-# 懒加载 openai
+# Lazy load openai
 try:
     from openai import OpenAI, AsyncOpenAI
 except ImportError:
@@ -135,7 +27,7 @@ class ApiModel(BaseModel):
         super().__init__(model_name, config)
         self.provider = self.config['provider']
         self.concurrency = self.config.get('concurrency', 10)
-        self.batch_size = self.config.get('batch_size', 32) # For URL provider batching
+        self.batch_size = self.config.get('batch_size', 32)
 
         if self.provider == constant.API_PROVIDER_OPENAI:
             if OpenAI is None:
@@ -149,7 +41,7 @@ class ApiModel(BaseModel):
             self.sync_client = OpenAI(api_key=api_key, base_url=base_url)
             self.async_client = AsyncOpenAI(api_key=api_key, base_url=base_url)
             self.model_identifier = self.config['model_identifier']
-            # (新增) 从配置中获取生成参数，例如 temperature, max_tokens
+            # Get generation parameters from config, e.g. temperature, max_tokens
             self.generation_kwargs = self.config.get('generation_kwargs', {})
 
 
@@ -157,10 +49,10 @@ class ApiModel(BaseModel):
             self.url = self.config['base_url']
             default_headers = {
                 'Content-Type': 'application/json'
-                # 'Accept': 'application/json'  # 加上 Accept 也是一个好习惯
+                # 'Accept': 'application/json'
             }
             self.model_identifier = self.config['model_identifier']
-            # (新增) 从配置中获取生成参数，例如 temperature, max_tokens
+            # Get generation parameters from config, e.g. temperature, max_tokens
             self.generation_kwargs = self.config.get('generation_kwargs', {})
 
             api_key = self.config.get('api_key') or os.environ.get(self.config.get('api_key_env_var'))
@@ -172,7 +64,7 @@ class ApiModel(BaseModel):
                 auth_header_name = self.config.get('auth_header_name', 'Authorization')
                 auth_scheme = self.config.get('auth_scheme', 'Bearer')
                 
-                # 这一步会覆盖任何用户在配置中手动写的 'Authorization'，确保了程序生成的key优先
+                # This step overrides any 'Authorization' manually written by user in config, ensuring program-generated key takes priority
                 self.headers[auth_header_name] = f"{auth_scheme} {api_key}".strip()
         
         else:
@@ -180,24 +72,24 @@ class ApiModel(BaseModel):
 
     def _prepare_openai_requests(self, inputs: Union[str, List[str], Dict[str, Any], List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
         """
-        (新增) 辅助函数：将多种输入格式统一转换为 OpenAI API 请求体列表。
+        Helper function: Convert various input formats into unified OpenAI API request body list.
         """
         if isinstance(inputs, str):
             inputs = [inputs]
 
         requests = []
         if all(isinstance(i, str) for i in inputs):
-            # 如果是字符串列表，自动包装
+            # If it's a string list, automatically wrap
             for prompt in inputs:
                 request_body = {
                     "messages": [{"role": "user", "content": prompt}]
                 }
-                # 将配置的生成参数与请求体合并
+                # Merge configured generation parameters with request body
                 if self.generation_kwargs:
                     request_body.update(self.generation_kwargs)
                 requests.append(request_body)
         elif all(isinstance(i, dict) for i in inputs):
-            # 如果已经是字典列表，直接使用（假设格式正确）
+            # If it's already a dictionary list, use directly (assuming correct format)
             requests = inputs
         else:
             raise TypeError(f"Unsupported input type for ApiModel. Must be str, List[str], or List[Dict]. Got: {type(inputs[0])}")
@@ -206,11 +98,11 @@ class ApiModel(BaseModel):
 
     def process(self, inputs: Union[str, List[str], Dict[str, Any], List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
         """
-        同步处理输入。
-        接受字符串或字典列表。如果是字符串，会自动包装成 'messages' 格式。
+        Synchronously process inputs.
+        Accepts strings or list of dictionaries. If string, automatically wraps into 'messages' format.
         """
         if self.provider == constant.API_PROVIDER_OPENAI:
-            # (修改) 调用辅助函数进行格式转换
+            # Call helper function for format conversion
             requests = self._prepare_openai_requests(inputs)
             
             all_results = []
@@ -234,14 +126,14 @@ class ApiModel(BaseModel):
 
     async def aprocess(self, inputs: Union[str, List[str], Dict[str, Any], List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
         """
-        异步处理输入，利用高并发性。
-        接受字符串或字典列表。如果是字符串，会自动包装成 'messages' 格式。
+        Asynchronously process inputs, leveraging high concurrency.
+        Accepts strings or list of dictionaries. If string, automatically wraps into 'messages' format.
         """
         if self.provider == constant.API_PROVIDER_OPENAI:
-            # (修改) 调用辅助函数进行格式转换
+            # Call helper function for format conversion
             requests = self._prepare_openai_requests(inputs)
             
-            # (修改) 准备最终的请求参数列表给分发器
+            # Prepare final request parameter list for dispatcher
             final_requests_to_dispatch = [
                 {"model": self.model_identifier, **req} for req in requests
             ]
@@ -253,7 +145,7 @@ class ApiModel(BaseModel):
             )
         
         elif self.provider == constant.API_PROVIDER_URL:
-            # 假设 URL provider 接受字典列表作为 payload
+            # Assume URL provider accepts dictionary list as payload
             requests = self._prepare_openai_requests(inputs)
             final_requests_to_dispatch = [
                 {"model": self.model_identifier, **req} for req in requests
@@ -267,7 +159,7 @@ class ApiModel(BaseModel):
             #     all_results.extend(batch_results)
             all_results = await batch_post_requests_async(
                 url=self.url,
-                payloads=final_requests_to_dispatch, # <-- 直接使用准备好的请求
+                payloads=final_requests_to_dispatch, # <-- Directly use prepared requests
                 headers=self.headers,
                 concurrency=self.concurrency
             )

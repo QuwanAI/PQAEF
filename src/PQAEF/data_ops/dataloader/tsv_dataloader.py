@@ -16,27 +16,27 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 @register_dataloader("TSVDataLoader")
 class TSVDataLoader(BaseDataLoader):
     """
-    TSV数据加载器
+    TSV Data Loader
 
-    支持加载TSV文件并通过注册的格式化器转换为标准格式
+    Supports loading TSV files and converting them to standard format through registered formatters
     """
 
     def __init__(self, config: Dict[str, Any]):
         """
-        初始化TSV数据加载器
+        Initialize TSV data loader
 
         Args:
-            config: 配置字典，包含以下字段：
-                - paths: TSV文件路径（字符串）或路径列表
-                - formatter_name: 格式化器名称（可选）
-                - encoding: 文件编码，默认utf-8（可选）
-                - skip_header: 是否跳过表头行，默认True（可选）
-                - num: 采样数量，-1表示加载全部数据（可选）
+            config: Configuration dictionary containing:
+                - paths: TSV file path (string) or list of paths
+                - formatter_name: Formatter name (optional)
+                - encoding: File encoding, default utf-8 (optional)
+                - skip_header: Whether to skip header row, default True (optional)
+                - num: Sample size, -1 means load all data (optional)
         """
         super().__init__(config)
 
         paths_config = self.config.get('paths')
-        # 默认文件后缀为 'tsv'
+        # Default file suffix is 'tsv'
         self.suffix = self.config.get("suffix", "tsv")
         if isinstance(paths_config, str):
             self.paths: List[Path] = [Path(paths_config)]
@@ -48,10 +48,10 @@ class TSVDataLoader(BaseDataLoader):
         self.recursive: bool = self.config.get('recursive', False)
         self.formatter_name = config.get('formatter_name')
         self.encoding = config.get('encoding', 'utf-8')
-        self.skip_header = config.get('skip_header', True)  # 默认跳过表头
+        self.skip_header = config.get('skip_header', True)  # Default skip header
         self.formatter = None
 
-        # 如果指定了格式化器，则获取格式化器实例
+        # Get formatter instance if specified
         if self.formatter_name:
             formatter_class = get_formatter(self.formatter_name)
             self.formatter = formatter_class()
@@ -61,7 +61,7 @@ class TSVDataLoader(BaseDataLoader):
         self._load_and_process_data()
 
     def _get_file_paths(self) -> List[Path]:
-        """查找并返回所有符合条件的TSV文件路径"""
+        """Find and return all TSV file paths that meet the criteria"""
         all_files = set()
         for path in self.paths:
             if not path.exists():
@@ -80,17 +80,17 @@ class TSVDataLoader(BaseDataLoader):
         return sorted(list(all_files))
 
     def _load_and_process_data(self):
-        """加载并处理所有找到的TSV文件"""
+        """Load and process all found TSV files"""
         file_paths = self._get_file_paths()
         for data_path in file_paths:
             logging.info(f"Processing TSV file: {data_path}")
             try:
                 with open(data_path, 'r', encoding=self.encoding, newline='') as tsvfile:
-                    # TSV文件使用制表符作为分隔符
-                    # quoting=csv.QUOTE_NONE 表示不处理引号，因为TSV标准中字段内不应包含制表符，从而避免了引号问题
+                    # TSV files use tab as delimiter
+                    # quoting=csv.QUOTE_NONE means no quote processing, as TSV standard fields should not contain tabs, avoiding quote issues
                     reader = csv.reader(tsvfile, delimiter='\t', quoting=csv.QUOTE_NONE)
 
-                    # 跳过表头行
+                    # Skip header row
                     if self.skip_header:
                         try:
                             next(reader)
@@ -100,14 +100,14 @@ class TSVDataLoader(BaseDataLoader):
 
                     for row_idx, row in enumerate(reader):
                         try:
-                            # 跳过空行
+                            # Skip empty lines
                             if not row or all(not cell.strip() for cell in row):
                                 continue
 
-                            # 清理数据：移除单元格两端的空白字符
+                            # Clean data: remove whitespace from both ends of cells
                             cleaned_row = [cell.strip() if isinstance(cell, str) else cell for cell in row]
 
-                            # 如果有格式化器，则使用格式化器处理数据
+                            # Use formatter to process data if available
                             if self.formatter:
                                 formatted_data = self.formatter.format(cleaned_row)
                             else:
@@ -126,31 +126,31 @@ class TSVDataLoader(BaseDataLoader):
                 logging.error(f"Error reading file {str(data_path)}: {e}")
                 continue
 
-        # 进行健壮的采样
+        # Perform robust sampling
         if self.num != -1:
             if self.num > len(self._samples):
                 logging.warning(
                     f"Requested sample size ({self.num}) is larger than available data ({len(self._samples)}). Using all available data."
                 )
-                # 不进行采样，使用全部数据
+                # No sampling, use all data
             else:
                 self._samples = random.sample(self._samples, self.num)
 
         logging.info(f"Finished loading. Total formatted samples: {len(self._samples)}")
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        """返回已加载和格式化好的样本迭代器"""
+        """Return iterator of loaded and formatted samples"""
         return iter(self._samples)
 
     def __len__(self) -> int:
-        """返回加载的样本总数"""
+        """Return total number of loaded samples"""
         return len(self._samples)
 
     def get_total_count(self) -> int:
         """
-        获取数据总数
+        Get total data count
 
         Returns:
-            int: 加载的数据总数
+            int: Total number of loaded data
         """
         return self.__len__()

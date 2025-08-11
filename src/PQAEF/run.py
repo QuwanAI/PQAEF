@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import yaml
 import json
 import os
 import importlib
 from typing import Dict, Any
 import argparse
-# 设置jieba缓存目录到用户目录
+# Set jieba cache directory to user directory
 os.environ['TMPDIR'] = os.path.expanduser('~/tmp')
 os.makedirs(os.path.expanduser('~/tmp'), exist_ok=True)
 from PQAEF.utils.timer import _timer
@@ -44,20 +43,20 @@ def load_dataloader(config: Dict[str, Any]):
 
 def _extract_model_name(config: Dict[str, Any]) -> str:
     """
-    从配置中提取模型名称
+    Extract model name from configuration
     """
     models = config.get('models', {})
     if models:
         first_model_key = list(models.keys())[0]
         first_model = models[first_model_key]
         
-        # 检查是否为 API 模型（如 openai_evaluator）
+        # Check if it's an API model (e.g., openai_evaluator)
         if first_model_key == 'openai_evaluator':
             model_identifier = first_model.get('config', {}).get('model_identifier', '')
             if model_identifier:
                 return model_identifier
         
-        # 对于本地模型，从 model_path 提取
+        # For local models, extract from model_path
         model_path = first_model.get('config', {}).get('model_path', '')
         if model_path:
             return os.path.basename(model_path)
@@ -67,7 +66,7 @@ def _extract_model_name(config: Dict[str, Any]) -> str:
 
 def _extract_dataset_name(config: Dict[str, Any]) -> str:
     """
-    从配置中提取数据集名称
+    Extract dataset name from configuration
     """
     data_loaders = config.get('data_loaders', {})
     if data_loaders:
@@ -84,7 +83,7 @@ def _extract_dataset_name(config: Dict[str, Any]) -> str:
 
 def _build_complete_output_dir(base_output_dir: str, config: Dict[str, Any]) -> str:
     """
-    根据配置自动补全output_dir路径：base_output_dir/{model_name}/{dataset_name}
+    Auto-complete output_dir path based on configuration: base_output_dir/{model_name}/{dataset_name}
     """
     model_name = _extract_model_name(config)
     dataset_name = _extract_dataset_name(config)
@@ -115,7 +114,7 @@ def main():
         print("\n[2/5] Setting up run environment...")
         setup_environment(config)
 
-        # --- 在环境设置好之后再导入可能依赖 CUDA 的库 ---
+        # Import CUDA-dependent libraries after environment setup
         import asyncio
         from PQAEF.data_ops.dataloader import BaseDataLoader, get_dataloader
         from PQAEF.pipelines.synchronous_pipe import SynchronousPipeline
@@ -123,38 +122,29 @@ def main():
         from PQAEF.data_ops.datadumper.json_dumper import JsonDataDumper
         from PQAEF.statistics.report_generator import ReportGenerator
 
-        # 确保 formatter 模块被加载以注册 formatters
+        # Ensure formatter module is loaded to register formatters
         importlib.import_module("PQAEF.data_ops.formatters.formatters")
         
         # --- 3. Initialize DataLoader ---
         print("\n[3/5] Initializing data loaders...")
-        # data_loader = JsonLoader(config['data_loader'])
         data_loader_config = config['data_loaders']
-        # data_loader = get_dataloader(data_loader_config.get("name", None))(data_loader_config)
         data_loaders = load_dataloader(data_loader_config)
-        # data_loader = HfDataLoader(config['data_loader'])
-        # print(data_loaders)
-        # sys.exit(0)
         
         # --- 4. Initialize and Run Pipeline ---
-        # (修改) 这是核心的逻辑选择部分
         print("\n[4/5] Initializing and running the pipeline...")
         
-        # 从配置中读取 pipeline_type，如果未指定，默认为 'synchronous'
+        # Read pipeline_type from config, default to 'synchronous' if not specified
         pipeline_type = config.get('pipeline_type', 'synchronous')
         print(f"INFO: Selected pipeline type: '{pipeline_type}'")
 
         final_results = None
         if pipeline_type == 'asynchronous':
-            # 如果是异步，实例化 AsynchronousPipeline
+            # For asynchronous mode, instantiate AsynchronousPipeline
             pipeline = AsynchronousPipeline(config)
-            # 使用 asyncio.run() 来启动异步的 run 方法
-            # final_results = asyncio.run(pipeline.run(data_loaders))
             raise NotImplementedError("Not support yet")
         elif pipeline_type == 'synchronous':
-            # 如果是同步，实例化 SynchronousPipeline
+            # For synchronous mode, instantiate SynchronousPipeline
             pipeline = SynchronousPipeline(config)
-            # 直接调用同步的 run 方法
             final_results = pipeline.run(data_loaders)
         else:
             raise ValueError(f"Unknown pipeline_type: '{pipeline_type}'. Must be 'synchronous' or 'asynchronous'.")
@@ -162,11 +152,11 @@ def main():
         # --- 5. Dump Final Results ---
         print("\n[5/5] Dumping processed data...")
         if 'data_dumper' in config:
-            # 构建完整的输出路径
+            # Build complete output path
             original_output_dir = config['data_dumper']['output_dir']
             complete_output_dir = _build_complete_output_dir(original_output_dir, config)
             
-            # 创建一个新的data_dumper配置，使用完整路径
+            # Create new data_dumper config with complete path
             data_dumper_config = config['data_dumper'].copy()
             data_dumper_config['output_dir'] = complete_output_dir
             
@@ -190,10 +180,10 @@ def main():
         if 'statistics_generator' in config:
             stats_config = config['statistics_generator']
             
-            # derive it from data_dumper config.
+            # Derive it from data_dumper config
             if 'output_dir' not in stats_config:
                 if 'data_dumper' in config and 'output_dir' in config['data_dumper']:
-                    # 直接使用已经构建好的完整路径，并添加statistical_analysis子目录
+                    # Use the already built complete path and add statistical_analysis subdirectory
                     stats_config['output_dir'] = os.path.join(complete_output_dir, 'statistical_analysis')
                     print(f"INFO: Statistics 'output_dir' not set. Defaulting to: {stats_config['output_dir']}")
                 else:
@@ -201,7 +191,7 @@ def main():
                     stats_config = None
             
             if stats_config:
-                # 在stats_config中加入config.get('tasks', []).get('eval_tool')
+                # Add eval_tool from tasks config to stats_config
                 stats_config['eval_tool'] = config.get('tasks', [])[0].get('eval_tool')
                 generator = ReportGenerator(stats_config)
                 generator.analyze(final_results, run_metadata)

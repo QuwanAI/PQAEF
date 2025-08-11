@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Contains specific formatters for different raw dataset structures.
 To make a formatter available, simply import this file in your main script.
@@ -16,18 +15,18 @@ from PQAEF.utils.utils import calculate_hash
 from PQAEF.utils.template_registry import BaseFormatter
 
 def map_options_to_letters(options):
-    # 生成对应的字母列表，超过Z时从a开始循环
+    # Generate corresponding letter list, cycling from 'a' when exceeding 'Z'
     letters = []
     for i in range(len(options)):
-        # 计算偏移量，26个大写字母后切换到小写字母循环
-        offset = i % 52  # 52 = 26(大写) + 26(小写)
+        # Calculate offset, switch to lowercase letters after 26 uppercase letters
+        offset = i % 52  # 52 = 26(uppercase) + 26(lowercase)
         if offset < 26:
-            # 大写字母 A-Z
+            # Uppercase letters A-Z
             letters.append(chr(ord('A') + offset))
         else:
-            # 小写字母 a-z
+            # Lowercase letters a-z
             letters.append(chr(ord('a') + (offset - 26)))
-    # 创建字母到选项的映射字典
+    # Create letter-to-option mapping dictionary
     mapped_options = {letter: options[i] for i, letter in enumerate(letters)}
     return mapped_options
 
@@ -45,7 +44,7 @@ class EmptyFormatter(BaseFormatter):
 class AGNewsFormatter(BaseFormatter):
     @override
     def format(self, raw_sample) -> Dict[str, Any]:
-        # 处理CSV行数据
+        # Process CSV row data
         if not isinstance(raw_sample, list) or len(raw_sample) < 3:
             return None
         
@@ -56,17 +55,17 @@ class AGNewsFormatter(BaseFormatter):
         except (ValueError, IndexError):
             return None
         
-        # 验证标签范围
+        # Validate label range
         if label not in [1, 2, 3, 4] or not title or not description:
             return None
         
-        # 构建场景描述
+        # Build scenario description
         scene = f"Title: {title}\nDescription: {description}"
         
-        # 生成哈希值
+        # Generate hash value
         hash_value = hashlib.sha256(scene.encode('utf-8')).hexdigest()
         
-        # 构建选项
+        # Build options
         options = {
             "A": "World - International news, politics, and global events",
             "B": "Sports - Athletic events, games, and sports-related news", 
@@ -74,11 +73,11 @@ class AGNewsFormatter(BaseFormatter):
             "D": "Sci/Tech - Science, technology, and innovation news"
         }
         
-        # 映射标签到答案
+        # Map label to answer
         label_to_answer = {1: "A", 2: "B", 3: "C", 4: "D"}
         correct_answer = label_to_answer.get(label, "")
         
-        # 添加其他信息
+        # Add other information
         other_info = {
             "dataset_name": "agnews",
             "title": title,

@@ -8,10 +8,7 @@ from tqdm.asyncio import tqdm # Using tqdm's own asyncio-compatible version
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
-# try:
-#     from openai.types.chat import ChatCompletion
-# except ImportError:
-#     ChatCompletion = None
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

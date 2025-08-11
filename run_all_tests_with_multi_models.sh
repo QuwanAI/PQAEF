@@ -1,54 +1,53 @@
 #!/bin/bash
 
-# 自动化测试运行脚本
-# 功能：循环使用不同的模型配置运行测试
+# Automated test runner script
+# Function: Loop through different model configurations to run tests
 
-echo "🚀 开始自动化测试流程..."
+echo "🚀 Starting automated test process..."
 echo "======================================"
 
-# 配置文件路径
+# Configuration file paths
 CONFIG_FILE="./model_configs.json"
 CONVERT_SCRIPT="./convert_models.py"
 TEST_SCRIPT="./run_all_tests.sh"
 TEMP_CONFIG="./temp_config.json"
 
-# 检查必要文件是否存在
+# Check if necessary files exist
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "❌ 配置文件不存在: $CONFIG_FILE"
+    echo "❌ Configuration file does not exist: $CONFIG_FILE"
     exit 1
 fi
 
 if [ ! -f "$CONVERT_SCRIPT" ]; then
-    echo "❌ 转换脚本不存在: $CONVERT_SCRIPT"
+    echo "❌ Conversion script does not exist: $CONVERT_SCRIPT"
     exit 1
 fi
 
 if [ ! -f "$TEST_SCRIPT" ]; then
-    echo "❌ 测试脚本不存在: $TEST_SCRIPT"
+    echo "❌ Test script does not exist: $TEST_SCRIPT"
     exit 1
 fi
 
-# 确保测试脚本有执行权限
+# Ensure test script has execute permissions
 chmod +x "$TEST_SCRIPT"
 
-# 读取配置数量
+# Read configuration count
 config_count=$(python3 -c "import json; data=json.load(open('$CONFIG_FILE')); print(len(data))")
-echo "📋 找到 $config_count 个模型配置"
+echo "📋 Found $config_count model configurations"
 
-# 记录开始时间
+# Record start time
 start_time=$(date +%s)
 total_success=0
 total_failed=0
 failed_configs=()
 
-# 循环处理每个配置
+# Loop through each configuration
 for i in $(seq 0 $((config_count - 1))); do
     echo ""
     echo "======================================"
-    echo "🔄 处理配置 $((i + 1))/$config_count"
+    echo "🔄 Processing configuration $((i + 1))/$config_count"
     echo "======================================"
     
-    # 提取当前配置
     python3 -c "
 import json
 with open('$CONFIG_FILE', 'r') as f:
@@ -58,13 +57,13 @@ with open('$TEMP_CONFIG', 'w') as f:
 " 2>/dev/null
     
     if [ $? -ne 0 ]; then
-        echo "❌ 提取配置 $((i + 1)) 失败"
+        echo "❌ Failed to extract configuration $((i + 1))"
         total_failed=$((total_failed + 1))
-        failed_configs+=("配置$((i + 1)): 提取失败")
+        failed_configs+=("Configuration $((i + 1)): Extraction failed")
         continue
     fi
     
-    # 获取当前配置的模型信息
+    # Get current configuration model information
     model_info=$(python3 -c "
 import json
 data = json.load(open('$TEMP_CONFIG'))
@@ -75,91 +74,91 @@ print(f'{model_type}|{model_name}|{model_id}')
 " 2>/dev/null)
     
     IFS='|' read -r model_type model_name model_id <<< "$model_info"
-    echo "📝 当前模型类型: $model_type"
-    echo "📝 当前模型名称: $model_name"
-    echo "📝 当前模型标识: $model_id"
+    echo "📝 Current model type: $model_type"
+    echo "📝 Current model name: $model_name"
+    echo "📝 Current model identifier: $model_id"
     
-    # 步骤1：更新配置文件
-    echo "🔧 步骤1: 更新配置文件..."
+    # Step 1: Update configuration files
+    echo "🔧 Step 1: Updating configuration files..."
     if python3 "$CONVERT_SCRIPT" "$TEMP_CONFIG"; then
-        echo "✅ 配置文件更新成功"
+        echo "✅ Configuration files updated successfully"
     else
-        echo "❌ 配置文件更新失败"
+        echo "❌ Configuration files update failed"
         total_failed=$((total_failed + 1))
-        failed_configs+=("配置$((i + 1)): 配置更新失败")
+        failed_configs+=("Configuration $((i + 1)): Configuration update failed")
         continue
     fi
     
-    # 步骤2：运行测试
-    echo "🧪 步骤2: 运行测试脚本..."
+    # Step 2: Run tests
+    echo "🧪 Step 2: Running test scripts..."
     if bash "$TEST_SCRIPT"; then
-        echo "✅ 测试执行成功 - 模型: $model_name ($model_type)"
+        echo "✅ Test execution successful - Model: $model_name ($model_type)"
         total_success=$((total_success + 1))
     else
-        echo "❌ 测试执行失败 - 模型: $model_name ($model_type)"
+        echo "❌ Test execution failed - Model: $model_name ($model_type)"
         total_failed=$((total_failed + 1))
-        failed_configs+=("配置$((i + 1)): 测试执行失败 (模型: $model_name)")
+        failed_configs+=("Configuration $((i + 1)): Test execution failed (Model: $model_name)")
     fi
     
-    # 清理临时文件
+    # Clean up temporary files
     rm -f "$TEMP_CONFIG"
     
-    echo "📊 当前进度: 成功 $total_success, 失败 $total_failed"
+    echo "📊 Current progress: Success $total_success, Failed $total_failed"
 done
 
-# 记录结束时间并计算耗时
+# Record end time and calculate elapsed time
 end_time=$(date +%s)
 elapsed_time=$((end_time - start_time))
 elapsed_hours=$((elapsed_time / 3600))
 elapsed_minutes=$(((elapsed_time % 3600) / 60))
 elapsed_seconds=$((elapsed_time % 60))
 
-# 输出最终总结
+# Output final summary
 echo ""
 echo "======================================"
-echo "🎯 自动化测试流程完成！"
+echo "🎯 Automated test process completed!"
 echo "======================================"
-echo "📊 执行统计:"
-echo "   总配置数: $config_count"
-echo "   成功: $total_success"
-echo "   失败: $total_failed"
-echo "   总耗时: ${elapsed_hours}小时 ${elapsed_minutes}分钟 ${elapsed_seconds}秒"
+echo "📊 Execution statistics:"
+echo "   Total configurations: $config_count"
+echo "   Success: $total_success"
+echo "   Failed: $total_failed"
+echo "   Total time: ${elapsed_hours}h ${elapsed_minutes}m ${elapsed_seconds}s"
 
 if [ $total_failed -gt 0 ]; then
     echo ""
-    echo "❌ 失败的配置:"
+    echo "❌ Failed configurations:"
     for failed_config in "${failed_configs[@]}"; do
         echo "   - $failed_config"
     done
     echo ""
-    echo "⚠️  建议检查失败的配置和日志"
+    echo "⚠️  Recommend checking failed configurations and logs"
 else
     echo ""
-    echo "🎉 所有配置都执行成功！"
+    echo "🎉 All configurations executed successfully!"
     
-    # 步骤3：计算加权分数
+    # Step 3: Calculate weighted scores
     echo ""
     echo "====================================="
-    echo "📊 步骤3: 计算加权分数..."
+    echo "📊 Step 3: Calculating weighted scores..."
     echo "====================================="
     if python calculate_weighted_scores.py; then
-        echo "✅ 加权分数计算成功"
+        echo "✅ Weighted scores calculated successfully"
         
-        # 步骤4：生成报告
+        # Step 4: Generate reports
         echo ""
         echo "====================================="
-        echo "📋 步骤4: 生成分析报告..."
+        echo "📋 Step 4: Generating analysis reports..."
         echo "====================================="
         cd result_analyze
         if python generate_report.py result.xlsx scores.json report.html; then
-            echo "✅ 分析报告生成成功"
-            echo "📄 报告文件: result_analyze/report.html"
+            echo "✅ Analysis report generated successfully"
+            echo "📄 Report file: result_analyze/report.html"
         else
-            echo "❌ 分析报告生成失败"
+            echo "❌ Analysis report generation failed"
         fi
         cd ..
     else
-        echo "❌ 加权分数计算失败"
+        echo "❌ Weighted scores calculation failed"
     fi
 fi
 

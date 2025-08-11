@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-准确率评测函数
-用于分类任务的准确率计算
+Accuracy evaluation functions
+For accuracy calculation in classification tasks
 """
 
 from typing import List, Dict, Any
@@ -9,13 +9,13 @@ from typing import List, Dict, Any
 
 def calculate_accuracy_metrics(results: List[Dict[str, Any]]) -> Dict[str, float]:
     """
-    计算准确率
+    Calculate accuracy metrics
     
     Args:
-        results: 评测结果列表
+        results: List of evaluation results
         
     Returns:
-        Dict[str, float]: 准确率统计
+        Dict[str, float]: Accuracy statistics
     """
     if not results:
         return {'accuracy': 0.0, 'correct_count': 0, 'total_count': 0}

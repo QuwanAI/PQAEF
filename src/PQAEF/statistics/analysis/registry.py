@@ -5,16 +5,16 @@ from typing import Dict, Type, Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from PQAEF.statistics.analysis.base_analysis import BaseAnalysis
 
-# 全局注册表，用于存储所有可用的分析器类
-# 键是配置中使用的名称，值是分析器类本身
+# Global registry for storing all available analyzer classes
+# Keys are names used in configuration, values are the analyzer classes themselves
 ANALYSIS_REGISTRY: Dict[str, Type['BaseAnalysis']] = {}
 
 def register_analyzer(name: str):
     """
-    一个类装饰器，用于将分析器注册到全局注册表中。
+    A class decorator for registering analyzers to the global registry.
 
     Args:
-        name (str): 在配置文件中用于引用此分析器的唯一名称。
+        name (str): Unique name used to reference this analyzer in configuration files.
     """
     def decorator(cls: Type['BaseAnalysis']) -> Type['BaseAnalysis']:
         if name in ANALYSIS_REGISTRY:

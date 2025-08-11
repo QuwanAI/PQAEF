@@ -8,35 +8,51 @@ from typing import Dict, Any, Iterator, Type, Callable
 
 class BaseDataLoader(ABC):
     """
-    Abstract base class for all data loaders in the framework.
+    Base class for data loaders
+    
+    All data loaders should inherit from this base class and implement the necessary methods
     """
     def __init__(self, config: Dict[str, Any]):
         """
-        Initializes the data loader with a configuration dictionary.
-
+        Initialize the data loader
+        
         Args:
-            config (Dict[str, Any]): Configuration, typically including 'path'
-                                     and 'formatter_name'.
+            config: Configuration dictionary
         """
         self.config = config
 
     @abstractmethod
     def __iter__(self) -> Iterator[Dict[str, Any]]:
         """
-        Yields data samples in the standard framework format.
-        This method must be implemented by all subclasses.
+        Return data iterator
+        
+        Returns:
+            Iterator[Dict[str, Any]]: Data iterator
         """
         raise NotImplementedError
     
     @abstractmethod
     def __len__(self) -> int:
+        """
+        Return dataset size
+        
+        Returns:
+            int: Dataset size
+        """
         raise NotImplementedError
 
 
+# Data loader registry
 DATA_LOADERS: Dict[str, Type["BaseDataLoader"]] = {}
 
 
 def register_dataloader(name: str) -> Callable:
+    """
+    Decorator for registering data loaders
+    
+    Args:
+        name: Data loader name
+    """
     def decorator(cls: Type["BaseDataLoader"]) -> Type["BaseDataLoader"]:
         if name in DATA_LOADERS:
             raise ValueError(f"Dataloader with name '{name}' is already registered.")
@@ -46,6 +62,18 @@ def register_dataloader(name: str) -> Callable:
 
 
 def get_dataloader(name: str) -> Type["BaseDataLoader"]:
+    """
+    Get data loader class by name
+    
+    Args:
+        name: Data loader name
+        
+    Returns:
+        Data loader class
+        
+    Raises:
+        ValueError: If the specified data loader is not found
+    """
     if name not in DATA_LOADERS:
         raise ValueError(
             f"Dataloader '{name}' not found. "

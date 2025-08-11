@@ -16,21 +16,22 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 @register_dataloader("CSVDataLoader")
 class CSVDataLoader(BaseDataLoader):
     """
-    CSV数据加载器
+    CSV Data Loader
     
-    支持加载CSV文件并通过注册的格式化器转换为标准格式
+    Supports loading CSV files and converting them to standard format through registered formatters
     """
     
     def __init__(self, config: Dict[str, Any]):
         """
-        初始化CSV数据加载器
+        Initialize CSV data loader
         
         Args:
-            config: 配置字典，包含以下字段：
-                - paths: CSV文件路径（字符串）或路径列表
-                - formatter_name: 格式化器名称（可选）
-                - encoding: 文件编码，默认utf-8（可选）
-                - skip_header: 是否跳过表头行，默认True（可选）
+            config: Configuration dictionary containing:
+                - paths: CSV file path (string) or list of paths
+                - formatter_name: Formatter name (optional)
+                - encoding: File encoding, default utf-8 (optional)
+                - skip_header: Whether to skip header row, default True (optional)
+                - num: Sample size, -1 means load all data (optional)
         """
         super().__init__(config)
         
@@ -50,7 +51,7 @@ class CSVDataLoader(BaseDataLoader):
         self.skip_header = config.get('skip_header', True)  # 默认跳过表头
         self.formatter = None
         
-        # 如果指定了格式化器，则获取格式化器实例
+        # Get formatter instance if specified
         if self.formatter_name:
             formatter_class = get_formatter(self.formatter_name)
             self.formatter = formatter_class()
@@ -88,52 +89,50 @@ class CSVDataLoader(BaseDataLoader):
                 print(f"Warning: File {data_path} does not exist, skipping...")
                 continue
                 
-            # 修改这里：支持TSV文件
             if not (str(data_path).lower().endswith('.csv') or str(data_path).lower().endswith('.tsv')):
                 print(f"Warning: File {data_path} is not a CSV/TSV file, skipping...")
                 continue
             
             try:
-                # logger.info(f"Loading CSV file: {data_path}")
+
                 with open(data_path, 'r', encoding=self.encoding, newline='') as csvfile:
                     
-                    # 根据文件扩展名确定分隔符
                     if str(data_path).lower().endswith('.tsv'):
-                        delimiter = '\t'  # TSV文件使用制表符
+                        delimiter = '\t'  # TSV files use tab separator
                     else:
-                        # CSV文件尝试自动检测分隔符
+                        # Try to auto-detect delimiter for CSV files
                         try:
                             sample = csvfile.read(1024)
                             csvfile.seek(0)
                             sniffer = csv.Sniffer()
                             delimiter = sniffer.sniff(sample).delimiter
                         except csv.Error:
-                            # 如果检测失败，默认使用逗号
+                            # Use comma as default if detection fails
                             delimiter = ','
                             csvfile.seek(0)
                     
-                    # 读取所有行作为列表
+                    # Read all rows as list
                     reader = csv.reader(csvfile, delimiter=delimiter)
                     
-                    # 跳过表头行
+                    # Skip header row
                     if self.skip_header:
                         try:
-                            next(reader)  # 跳过第一行（表头）
+                            next(reader)  # Skip first row (header)
                         except StopIteration:
-                            continue  # 文件为空，跳过
+                            continue  # File is empty, skip
                     
                     for row_idx, row in enumerate(reader):
                         try:
-                            # 跳过空行
+                            # Skip empty rows
                             if not row or all(not cell.strip() for cell in row):
                                 continue
                             
-                            # 清理数据：移除空白字符
+                            # Clean data: remove whitespace
                             cleaned_row = [cell.strip() if isinstance(cell, str) else cell for cell in row]
                             
-                            # 如果有格式化器，则使用格式化器处理数据
+                            # Use formatter to process data if available
                             if self.formatter:
-                                # logger.info(f"Formatting row {row_idx} in {data_path}")
+
                                 formatted_data = self.formatter.format(cleaned_row)
                             else:
                                 formatted_data =  {
@@ -152,11 +151,11 @@ class CSVDataLoader(BaseDataLoader):
             except Exception as e:
                 print(f"Error reading file {str(data_path)}: {e}")
                 continue
-        # 采样
+        # Sampling
         if self.num != -1:
             if self.num > len(self._samples):
                 logging.warning(f"Requested sample size ({self.num}) is larger than available data ({len(self._samples)}). Using all available data.")
-                # 不进行采样，使用全部数据
+                # No sampling, use all data
             else:
                 self._samples = random.sample(self._samples, self.num)
         
@@ -164,7 +163,7 @@ class CSVDataLoader(BaseDataLoader):
 
     
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        # 直接迭代已经加载和格式化好的样本列表
+        # Directly iterate over loaded and formatted sample list
         return iter(self._samples)
 
     def __len__(self) -> int:
@@ -172,9 +171,9 @@ class CSVDataLoader(BaseDataLoader):
     
     def get_total_count(self) -> int:
         """
-        获取数据总数（可选实现）
+        Get total data count (optional implementation)
         
         Returns:
-            int: 数据总数，如果无法确定则返回-1
+            int: Total data count, return -1 if cannot be determined
         """
         return self.__len__()

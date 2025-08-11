@@ -16,13 +16,13 @@ class JsonlLoader(BaseDataLoader):
         super().__init__(config)
         
         """
-            可接受的 config 参数
-                paths: 多个存放数据的 path 路径
-                suffix: 需要读取文件的后缀
-                recursive: 是否递归的搜寻文件
-                formatter_name: formatter 的名称
-                num: 限制数据数量，默认为 -1 即全部加载
-                seed: 采样种子
+            Acceptable config parameters
+                paths: Multiple path locations for storing data
+                suffix: File suffix to read
+                recursive: Whether to recursively search for files
+                formatter_name: Name of the formatter
+                num: Limit data quantity, default is -1 which means load all
+                seed: Sampling seed
         """
         
         # Paths can be a single string or a list of strings
@@ -77,20 +77,20 @@ class JsonlLoader(BaseDataLoader):
             return
 
         for file_path in file_paths:
-            if 'gaokao-mathcloze' in str(file_path) or 'math.jsonl' in str(file_path): # 填空题
+            if 'gaokao-mathcloze' in str(file_path) or 'math.jsonl' in str(file_path): # Fill-in-the-blank questions
                 continue
             logging.info(f"Loading and processing file: {file_path}")
             try:
                 
-                # 有的数据集标签在另外的文件
+                # Some dataset labels are in separate files
                 labels = []
                 if 'PIQA' in str(file_path):
                     label_path = str(file_path).replace('.jsonl', '-labels.lst')
                     with open(label_path, "r", encoding="utf-8") as f:
-                        lines = f.readlines()  # 返回包含所有行的列表（每行末尾可能包含换行符）
+                        lines = f.readlines()  # Returns a list containing all lines (each line may contain newline characters at the end)
                     labels = [line.strip() for line in lines]
 
-                # 逐行读取 JSON Lines 文件
+                # Read JSON Lines file line by line
                 with open(file_path, 'r', encoding='utf-8') as f:
                     for i, line in enumerate(f):
                         try:
@@ -122,19 +122,19 @@ class JsonlLoader(BaseDataLoader):
             except IOError as e:
                 logging.error(f"Failed to read file {file_path}: {e}")
                 continue
-        # 采样
-        # 在第127行附近修改
+        # Sampling
+        # Modified around line 127
         if self.num != -1:
             if self.num > len(self._samples):
                 logging.warning(f"Requested sample size ({self.num}) is larger than available data ({len(self._samples)}). Using all available data.")
-                # 不进行采样，使用全部数据
+                # No sampling, use all data
             else:
                 self._samples = random.sample(self._samples, self.num)
         
         logging.info(f"Finished loading. Total formatted samples: {len(self._samples)}")
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        # 直接迭代已经加载和格式化好的样本列表
+        # Directly iterate over loaded and formatted sample list
         return iter(self._samples)
 
     def __len__(self) -> int:

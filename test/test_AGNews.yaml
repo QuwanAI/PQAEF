@@ -2,12 +2,11 @@ data_loaders:
   AGNewsDataLoader:
     class: CSVDataLoader
     paths:
-    - path/to/ag_news_csv/test.csv
+    - ./data/ag_news_csv/test_example.csv
     recursive: false
     num: 300
     formatter_name: AGNewsFormatter
     encoding: utf-8
-    skip_header: true
 models:
   openai_evaluator:
     class: ApiModel

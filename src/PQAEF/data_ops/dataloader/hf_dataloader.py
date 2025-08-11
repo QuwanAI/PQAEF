@@ -112,11 +112,11 @@ class HfDataLoader(BaseDataLoader):
         return len(self._samples)
 
 
-# --- 使用示例 ---
+# --- Usage Example ---
 if __name__ == "__main__":
     print("--- HfDataLoader Test ---")
     
-    # 我们使用模拟的 "passthrough" 格式化器进行测试
+    # We use a simulated "passthrough" formatter for testing
     squad_config = {
         "path": "squad",
         "split": "validation",

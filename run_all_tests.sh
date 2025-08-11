@@ -1,12 +1,12 @@
-echo "开始执行所有测试配置文件..."
+echo "Starting to execute all test configuration files..."
 echo "======================================"
 
-# 定义配置文件列表
+# Define configuration file list
 config_files=(
     "test_AGNews.yaml"
 )
 
-# 记录开始时间
+# Record start time
 start_time=$(date +%s)
 total_files=${#config_files[@]}
 current=0
@@ -14,18 +14,18 @@ success_count=0
 failed_count=0
 failed_files=()
 
-# 逐个执行配置文件
+# Execute configuration files one by one
 for config_file in "${config_files[@]}"; do
     current=$((current + 1))
-    echo "[$current/$total_files] 正在执行: $config_file"
-    echo "命令: pqaef-runner --config ./test/$config_file"
+    echo "[$current/$total_files] Executing: $config_file"
+    echo "Command: pqaef-runner --config ./test/$config_file"
     
-    # 执行命令并捕获返回值
+    # Execute command and capture return value
     if pqaef-runner --config "./test/$config_file"; then
-        echo "✅ $config_file 执行成功"
+        echo "✅ $config_file executed successfully"
         success_count=$((success_count + 1))
     else
-        echo "❌ $config_file 执行失败"
+        echo "❌ $config_file execution failed"
         failed_count=$((failed_count + 1))
         failed_files+=("$config_file")
     fi
@@ -33,26 +33,26 @@ for config_file in "${config_files[@]}"; do
     echo "--------------------------------------"
 done
 
-# 记录结束时间并计算耗时
+# Record end time and calculate elapsed time
 end_time=$(date +%s)
 elapsed_time=$((end_time - start_time))
 
-# 输出执行总结
+# Output execution summary
 echo "======================================"
-echo "执行完成！"
-echo "总文件数: $total_files"
-echo "成功: $success_count"
-echo "失败: $failed_count"
-echo "总耗时: ${elapsed_time}秒"
+echo "Execution completed!"
+echo "Total files: $total_files"
+echo "Success: $success_count"
+echo "Failed: $failed_count"
+echo "Total time: ${elapsed_time}s"
 
 if [ $failed_count -gt 0 ]; then
     echo ""
-    echo "失败的配置文件:"
+    echo "Failed configuration files:"
     for failed_file in "${failed_files[@]}"; do
         echo "  - $failed_file"
     done
     exit 1
 else
-    echo "🎉 所有配置文件执行成功！"
+    echo "🎉 All configuration files executed successfully!"
     exit 0
 fi

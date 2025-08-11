@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-批量转换配置文件脚本
-功能：
-1. 支持将配置文件中的模型替换为指定的ApiModel或LocalModel配置
-2. 自动更新tasks中的llm_model_name引用
-3. 支持从外部传入配置或从JSON文件读取配置
+Batch configuration file conversion script
+Features:
+1. Support replacing models in configuration files with specified ApiModel or LocalModel configurations
+2. Automatically update llm_model_name references in tasks
+3. Support external configuration input or reading configuration from JSON files
 """
 
 import os
@@ -18,7 +16,7 @@ from typing import Dict, Any
 
 def get_default_config() -> Dict[str, Any]:
     """
-    返回默认的openai_evaluator配置
+    Return default openai_evaluator configuration
     """
     return {
         "model_type": "api",
@@ -35,58 +33,58 @@ def get_default_config() -> Dict[str, Any]:
 
 def main(external_config: Dict[str, Any] = None):
     """
-    主函数：批量处理所有配置文件
-    external_config: 外部传入的配置，如果提供则使用该配置
+    Main function: batch process all configuration files
+    external_config: External configuration input, use this configuration if provided
     """
-    # 获取test目录下所有YAML文件
+    # Get all YAML files in test directory
     test_dir = Path('./test')
     yaml_files = list(test_dir.glob('*.yaml'))
     
     if not yaml_files:
-        print("❌ 在test目录下未找到任何YAML文件")
+        print("❌ No YAML files found in test directory")
         return
     
-    # 如果提供了外部配置，使用它；否则使用默认配置
+    # If external configuration is provided, use it; otherwise use default configuration
     target_config = external_config if external_config else get_default_config()
     
-    print(f"找到 {len(yaml_files)} 个YAML配置文件")
+    print(f"Found {len(yaml_files)} YAML configuration files")
     if external_config:
         model_id = external_config.get('config', {}).get('model_identifier', 
                    external_config.get('config', {}).get('model_path', 'unknown'))
         model_type = external_config.get('model_type', 'unknown')
         model_name = external_config.get('model_name', 'unknown')
-        print(f"使用外部配置，模型类型: {model_type}, 模型名称: {model_name}, 模型标识: {model_id}")
+        print(f"Using external configuration, model type: {model_type}, model name: {model_name}, model identifier: {model_id}")
     print("=" * 60)
     
     modified_yaml_count = 0
     total_yaml_count = len(yaml_files)
     
-    # 逐个处理YAML文件
+    # Process YAML files one by one
     for yaml_file in sorted(yaml_files):
-        print(f"\n处理文件: {yaml_file.name}")
+        print(f"\nProcessing file: {yaml_file.name}")
         if update_yaml_config_with_target(yaml_file, target_config):
             modified_yaml_count += 1
     
-    # 输出总结
+    # Output summary
     print("\n" + "=" * 60)
-    print(f"处理完成！")
-    print(f"YAML文件总数: {total_yaml_count}")
-    print(f"YAML文件已修改: {modified_yaml_count}")
-    print(f"YAML文件未修改: {total_yaml_count - modified_yaml_count}")
+    print(f"Processing completed!")
+    print(f"Total YAML files: {total_yaml_count}")
+    print(f"YAML files modified: {modified_yaml_count}")
+    print(f"YAML files unchanged: {total_yaml_count - modified_yaml_count}")
     
     if modified_yaml_count > 0:
         model_name = target_config.get('model_name', 'unknown')
         model_type = target_config.get('model_type', 'unknown')
-        print(f"\n🎉 转换完成！已成功更新配置为模型: {model_name} (类型: {model_type})")
+        print(f"\n🎉 Conversion completed! Successfully updated configuration to model: {model_name} (type: {model_type})")
     else:
-        print(f"\n✅ 所有文件都已是目标配置，无需修改。")
+        print(f"\n✅ All files are already in target configuration, no modification needed.")
 
 def update_yaml_config_with_target(file_path: Path, target_config: Dict[str, Any]) -> bool:
     """
-    使用指定的目标配置更新单个YAML配置文件
+    Update single YAML configuration file with specified target configuration
     """
     try:
-        # 读取YAML文件
+        # Read YAML file
         with open(file_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
         
@@ -95,15 +93,15 @@ def update_yaml_config_with_target(file_path: Path, target_config: Dict[str, Any
         target_model_class = target_config.get('class')
         target_model_config = target_config.get('config')
         
-        # 检查models配置
+        # Check models configuration
         if 'models' in data:
-            # 获取当前所有模型名称
+            # Get all current model names
             current_model_names = list(data['models'].keys())
             
-            # 清空现有模型配置
+            # Clear existing model configuration
             data['models'].clear()
             
-            # 添加新的模型配置
+            # Add new model configuration
             data['models'][target_model_name] = {
                 'class': target_model_class,
                 'name': target_model_name,
@@ -111,12 +109,12 @@ def update_yaml_config_with_target(file_path: Path, target_config: Dict[str, Any
             }
             
             if current_model_names:
-                print(f"  ✓ 已将模型配置更新为 {target_model_name} ({target_model_class})")
+                print(f"  ✓ Updated model configuration to {target_model_name} ({target_model_class})")
                 modified = True
         
-        # 检查并更新tasks中的llm_model_name引用
+        # Check and update llm_model_name references in tasks
         if 'tasks' in data:
-            # 处理tasks为字典的情况
+            # Handle case where tasks is a dictionary
             if isinstance(data['tasks'], dict):
                 for task_name, task_config in data['tasks'].items():
                     if isinstance(task_config, dict) and 'config' in task_config:
@@ -124,9 +122,9 @@ def update_yaml_config_with_target(file_path: Path, target_config: Dict[str, Any
                         if current_model and current_model != target_model_name:
                             task_config['config']['llm_model_name'] = target_model_name
                             modified = True
-                            print(f"  ✓ 已更新任务 {task_name} 的 llm_model_name: {current_model} -> {target_model_name}")
+                            print(f"  ✓ Updated task {task_name} llm_model_name: {current_model} -> {target_model_name}")
             
-            # 处理tasks为列表的情况
+            # Handle case where tasks is a list
             elif isinstance(data['tasks'], list):
                 for i, task_config in enumerate(data['tasks']):
                     if isinstance(task_config, dict) and 'config' in task_config:
@@ -134,24 +132,24 @@ def update_yaml_config_with_target(file_path: Path, target_config: Dict[str, Any
                         if current_model and current_model != target_model_name:
                             task_config['config']['llm_model_name'] = target_model_name
                             modified = True
-                            print(f"  ✓ 已更新任务列表第 {i+1} 项的 llm_model_name: {current_model} -> {target_model_name}")
+                            print(f"  ✓ Updated task list item {i+1} llm_model_name: {current_model} -> {target_model_name}")
         
-        # 如果有修改，写回文件
+        # If there are modifications, write back to file
         if modified:
             with open(file_path, 'w', encoding='utf-8') as f:
                 yaml.dump(data, f, default_flow_style=False, allow_unicode=True, 
                          sort_keys=False, indent=2)
             return True
         else:
-            print(f"  - 无需修改")
+            print(f"  - No modification needed")
             return False
             
     except Exception as e:
-        print(f"  ❌ 处理文件时出错: {e}")
+        print(f"  ❌ Error processing file: {e}")
         return False
 
 if __name__ == '__main__':
-    # 检查是否有命令行参数传入配置文件
+    # Check if configuration file is passed via command line arguments
     if len(sys.argv) > 1:
         config_file = sys.argv[1]
         try:
@@ -159,7 +157,7 @@ if __name__ == '__main__':
                 external_config = json.load(f)
             main(external_config)
         except Exception as e:
-            print(f"❌ 读取配置文件失败: {e}")
+            print(f"❌ Failed to read configuration file: {e}")
             sys.exit(1)
     else:
         main()

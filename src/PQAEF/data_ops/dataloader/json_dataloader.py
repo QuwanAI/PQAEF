@@ -93,18 +93,18 @@ class JsonLoader(BaseDataLoader):
                     )
                     continue
                 
-        # 采样
+        # Sampling
         if self.num != -1:
             if self.num > len(self._samples):
                 logging.warning(f"Requested sample size ({self.num}) is larger than available data ({len(self._samples)}). Using all available data.")
-                # 不进行采样，使用全部数据
+                # No sampling, use all data
             else:
                 self._samples = random.sample(self._samples, self.num)
         
         logging.info(f"Finished loading. Total formatted samples: {len(self._samples)}")
 
     def __iter__(self) -> Iterator[Dict[str, Any]]:
-        # 直接迭代已经加载和格式化好的样本列表
+        # Directly iterate over loaded and formatted sample list
         return iter(self._samples)
 
     def __len__(self) -> int:

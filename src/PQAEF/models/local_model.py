@@ -89,53 +89,53 @@ class LocalModel(BaseModel):
         self, inputs: Union[str, List[str], List[Dict[str, Any]], Dict[str, Any]]
     ) -> Dict[str, List[Tuple[int, str]]]:
         """
-        解析多种格式的输入，将其规范化，并根据生成参数对样本进行分组。
+        Parse various input formats, normalize them, and group samples by generation parameters.
 
         Returns:
-            一个字典，其中：
-            - key 是一个代表该组生成参数的 JSON 字符串。
-            - value 是一个元组列表，每个元组为 (原始索引, 提示词)。
+            A dictionary where:
+            - key is a JSON string representing the generation parameters for that group.
+            - value is a list of tuples, each tuple being (original_index, prompt).
         """
-        # 1. 拷贝模型级别的默认生成参数作为基础
+        # 1. Copy model-level default generation parameters as base
         base_kwargs = self.config.get('generation_kwargs', {}).copy()
 
-        # 2. 创建一个字典来存储分组后的样本
-        #    key: 序列化后的 kwargs (str) -> value: list of (original_index, prompt)
+        # 2. Create a dictionary to store grouped samples
+        #    key: serialized kwargs (str) -> value: list of (original_index, prompt)
         grouped_prompts = defaultdict(list)
         
-        # 3. 规范化输入
+        # 3. Normalize inputs
         samples: List[Dict[str, Any]] = []
         if isinstance(inputs, str):
-            # 单个字符串
+            # Single string
             samples = [{'prompt': inputs}]
         elif isinstance(inputs, list) and all(isinstance(i, str) for i in inputs):
-            # 字符串列表
+            # List of strings
             samples = [{'prompt': i} for i in inputs]
         elif isinstance(inputs, list) and all(isinstance(i, dict) for i in inputs):
-            # 字典列表 (最复杂的情况)
+            # List of dictionaries (most complex case)
             for item in inputs:
                 if 'prompt' not in item:
-                    raise ValueError("当输入为字典列表时，每个字典必须包含 'prompt' 键。")
+                    raise ValueError("When input is a list of dictionaries, each dictionary must contain a 'prompt' key.")
             samples = inputs
         elif isinstance(inputs, dict):
-            # 单个字典，包含 prompts 列表和共享的 kwargs
+            # Single dictionary containing prompts list and shared kwargs
             if 'prompts' not in inputs or not isinstance(inputs['prompts'], list):
-                raise ValueError("当输入为字典时，必须包含一个名为 'prompts' 的列表。")
+                raise ValueError("When input is a dictionary, it must contain a list named 'prompts'.")
             
             shared_kwargs = {k: v for k, v in inputs.items() if k != 'prompts'}
             samples = [{'prompt': p, **shared_kwargs} for p in inputs['prompts']]
         else:
-            raise TypeError(f"不支持的输入类型: {type(inputs)}")
+            raise TypeError(f"Unsupported input type: {type(inputs)}")
 
-        # 4. 遍历规范化后的样本，进行分组
+        # 4. Iterate through normalized samples and group them
         for original_index, sample in enumerate(samples):
-            # 创建当前样本的最终参数
+            # Create final parameters for current sample
             current_kwargs = base_kwargs.copy()
             override_kwargs = {k: v for k, v in sample.items() if k != 'prompt'}
             current_kwargs.update(override_kwargs)
             
-            # 为了能作为字典的 key，必须将参数字典序列化为不可变的字符串
-            # sorted() 确保了 {'a':1, 'b':2} 和 {'b':2, 'a':1} 会得到相同的 key
+            # To use as dictionary key, must serialize parameter dictionary to immutable string
+            # sorted() ensures {'a':1, 'b':2} and {'b':2, 'a':1} get the same key
             kwargs_key = json.dumps(current_kwargs, sort_keys=True)
             
             grouped_prompts[kwargs_key].append((original_index, sample['prompt']))
@@ -144,7 +144,7 @@ class LocalModel(BaseModel):
 
     def _run_inference_batch(self, prompts: List[str], generation_kwargs: Dict[str, Any]) -> List[str]:
         """
-        对一个具有相同参数的批次执行实际的推理。
+        Execute actual inference on a batch with the same parameters.
         """
         all_generated_texts = []
         with torch.no_grad():
@@ -174,38 +174,37 @@ class LocalModel(BaseModel):
 
     def process(self, inputs: Union[str, List[str], List[Dict[str, Any]], Dict[str, Any]]) -> List[str]:
         """
-        处理多种格式的输入，支持样本级别的生成参数。
+        Process various input formats, supporting sample-level generation parameters.
         """
-        # 1. 对输入进行解析和分组
+        # 1. Parse and group inputs
         grouped_prompts = self._prepare_and_group_inputs(inputs)
         
-        # 2. 准备一个列表，用于按原始顺序存放结果
+        # 2. Prepare a list to store results in original order
         total_samples = sum(len(v) for v in grouped_prompts.values())
         results = [None] * total_samples
 
-        # 3. 遍历每个分组，分批次进行推理
+        # 3. Iterate through each group and perform inference in batches
         for kwargs_key, group in tqdm(grouped_prompts.items(), desc="Processing groups"):
-            # 反序列化 kwargs
+            # Deserialize kwargs
             generation_kwargs = json.loads(kwargs_key)
             
-            # 提取原始索引和提示词
+            # Extract original indices and prompts
             indices, prompts_in_group = zip(*group)
 
-            print(f"--- Running group with {len(prompts_in_group)} samples. Kwargs: {generation_kwargs} ---") # 调试信息
+            print(f"--- Running group with {len(prompts_in_group)} samples. Kwargs: {generation_kwargs} ---") # Debug info
             
-            # 对当前分组进行推理
+            # Perform inference on current group
             generated_texts = self._run_inference_batch(list(prompts_in_group), generation_kwargs)
 
-            # 4. 将生成的结果放回其在原始输入中的位置
+            # 4. Put generated results back to their positions in original input
             for original_index, text in zip(indices, generated_texts):
                 results[original_index] = text
         
         return results
-    
-    # 在 LocalModel 类的末尾添加此方法
+
     def score_options(self, context: str, options: List[str]) -> List[float]:
         """
-        为给定的上下文和多个选项计算分数，分数越高越好。
+        Calculate scores for given context and multiple options, higher scores are better.
         """
         scores = []
         with torch.no_grad():

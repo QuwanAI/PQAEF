@@ -32,11 +32,11 @@ HTML_TEMPLATE_MERGED = """
 <body>
     <h1>{{ report_title }}</h1>
     <div class="report-links">
-        <a href="report_level_1.html" class="{% if current_level == 1 %}active{% endif %}">L1 能力维度</a>
-        <a href="report_level_2.html" class="{% if current_level == 2 %}active{% endif %}">L2 能力名称</a>
-        <a href="report_level_3.html" class="{% if current_level == 3 %}active{% endif %}">L3 任务难度</a>
-        <a href="report_level_4.html" class="{% if current_level == 4 %}active{% endif %}">L4 评价任务</a>
-        <a href="report_level_5_datasets.html" class="{% if current_level == 5 %}active{% endif %}">L5 数据集</a>
+        <a href="report_level_1.html" class="{% if current_level == 1 %}active{% endif %}">L1 Capability Dimensions</a>
+        <a href="report_level_2.html" class="{% if current_level == 2 %}active{% endif %}">L2 Capability Names</a>
+        <a href="report_level_3.html" class="{% if current_level == 3 %}active{% endif %}">L3 Task Difficulty</a>
+        <a href="report_level_4.html" class="{% if current_level == 4 %}active{% endif %}">L4 Evaluation Tasks</a>
+        <a href="report_level_5_datasets.html" class="{% if current_level == 5 %}active{% endif %}">L5 Datasets</a>
     </div>
     <table>
         <thead>
@@ -111,7 +111,7 @@ def prepare_and_generate_report(level_depth, all_level_scores, weights_data, mod
     """
     Prepares data for a specific level and generates its HTML report.
     """
-    hierarchy_headers = ["能力维度", "能力名称", "任务难度", "评价任务", "数据集"]
+    hierarchy_headers = ["Capability Dimension", "Capability Name", "Task Difficulty", "Evaluation Task", "Dataset"]
     report_headers = hierarchy_headers[:level_depth] + model_names
     
     # 1. Prepare data rows
@@ -198,12 +198,12 @@ def prepare_and_generate_report(level_depth, all_level_scores, weights_data, mod
         final_data.append({'cells': row_cells, 'scores': scores_list})
 
     # 4. Render and save the HTML file
-    level_titles = {1: "L1 能力维度", 2: "L2 能力名称", 3: "L3 任务难度", 4: "L4 评价任务", 5: "L5 数据集"}
+    level_titles = {1: "L1 Capability Dimensions", 2: "L2 Capability Names", 3: "L3 Task Difficulty", 4: "L4 Evaluation Tasks", 5: "L5 Datasets"}
     base_filename = f"report_level_{level_depth}_datasets.html" if level_depth == 5 else f"report_level_{level_depth}.html"
     output_path = os.path.join(output_dir, base_filename) # <--- 使用 os.path.join 构建完整路径
 
     html_content = template.render(
-        report_title=f"模型评测报告 - {level_titles[level_depth]}",
+        report_title=f"Model Evaluation Report - {level_titles[level_depth]}",
         current_level=level_depth,
         headers=report_headers,
         data=final_data
@@ -233,4 +233,4 @@ if __name__ == "__main__":
         for level in range(1, 6):
             prepare_and_generate_report(level, all_level_scores, weights, models, template, output_dir)
         
-        print(f"\n🎉 全部5个级别的报告已成功生成在 '{output_dir}' 文件夹中！")
+        print(f"\n🎉 All 5 level reports have been successfully generated in the '{output_dir}' folder!")

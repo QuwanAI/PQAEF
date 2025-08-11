@@ -1,43 +1,43 @@
-基础能力:
+Basic_Capabilities:
   weight: 1.0
   children:
-    自然语言理解:
+    Natural_Language_Understanding:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.3
           children:
-            文本分类:
+            Text_Classification:
               weight: 1.0
               children:
                 AGNews:
                   weight: 1.0
                 THUCNews:
                   weight: 1.0
-            文本匹配:
+            Text_Matching:
               weight: 1.0
               children:
                 LCQMC:
                   weight: 1.0
                 QQP:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.55
           children:
-            阅读理解（抽取式）:
+            Reading_Comprehension_Extractive:
               weight: 1.0
               children:
                 CMRC:
                   weight: 1.0
-            词义消歧（多义词）:
+            Word_Sense_Disambiguation:
               weight: 1.0
               children:
                 WiC:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.15
           children:
-            阅读理解:
+            Reading_Comprehension:
               weight: 1.0
               children:
                 C3:
@@ -46,18 +46,18 @@
                   weight: 1.0
                 ReCoRD:
                   weight: 1.0
-            多轮对话理解:
+            Multi_Turn_Dialogue_Understanding:
               weight: 1.0
               children:
                 UltraChat:
                   weight: 1.0
-    自然语言推理:
+    Natural_Language_Inference:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.3
           children:
-            文本蕴含:
+            Textual_Entailment:
               weight: 1.0
               children:
                 OCNLI:
@@ -66,94 +66,92 @@
                   weight: 1.0
                 RTE:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.55
           children:
-            共指消解与常识推理:
+            Coreference_Resolution_and_Commonsense_Reasoning:
               weight: 1.0
               children:
                 WSC:
                   weight: 1.0
-            多轮对话推理:
+            Multi_Turn_Dialogue_Reasoning:
               weight: 1.0
               children:
                 MuTual:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.15
           children:
-            因果推理:
+            Causal_Reasoning:
               weight: 1.0
               children:
                 COPA:
                   weight: 1.0
-            一阶逻辑推理:
+            First_Order_Logic_Reasoning:
               weight: 1.0
               children:
                 FOLIO:
                   weight: 1.0
-            复杂逻辑推理:
+            Complex_Logic_Reasoning:
               weight: 1.0
               children:
                 LogicNLI:
                   weight: 1.0
-    自然语言生成:
+    Natural_Language_Generation:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.6
           children:
-            摘要:
+            Summarization:
               weight: 1.0
               children:
                 LCSTS:
-                  weight: 1.0
-                SAMSum:
                   weight: 1.0
                 CNewSum:
                   weight: 1.0
                 VCSUM:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.4
           children:
-            约束性文本写作:
+            Constrained_Text_Writing:
               weight: 1.0
               children:
                 MulDimIF:
                   weight: 1.0
                 Writing_Ability:
                   weight: 1.0
-    常识能力:
+    Commonsense_Knowledge:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.3
           children:
-            日常场景常识:
+            Everyday_Scenario_Commonsense:
               weight: 1.0
               children:
                 HellaSwag:
                   weight: 1.0
-            常识问答:
+            Commonsense_QA:
               weight: 1.0
               children:
                 Cosmos:
                   weight: 1.0
-            物理常识:
+            Physical_Commonsense:
               weight: 1.0
               children:
                 PIQA:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.55
           children:
-            人类认知与应试能力:
+            Human_Cognition_and_Exam_Ability:
               weight: 1.0
               children:
                 AGIEval:
                   weight: 1.0
-            多任务知识广度:
+            Multi_Task_Knowledge_Breadth:
               weight: 1.0
               children:
                 CMMLU:
@@ -162,24 +160,24 @@
                   weight: 1.0
                 CEval:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.15
           children:
-            真实性问答:
+            Truthfulness_QA:
               weight: 1.0
               children:
                 TruthfulQA:
                   weight: 1.0
-情感能力:
+Emotional_Intelligence:
   weight: 1.0
   children:
-    情感识别:
+    Emotion_Recognition:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.3
           children:
-            情感极性识别:
+            Sentiment_Polarity_Recognition:
               weight: 1.0
               children:
                 IMDb:
@@ -188,10 +186,10 @@
                   weight: 1.0
                 Dianping:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.55
           children:
-            细粒度情感识别:
+            Fine_Grained_Emotion_Recognition:
               weight: 1.0
               children:
                 GoEmotions:
@@ -202,63 +200,63 @@
                   weight: 1.0
                 PQEmotion1:
                   weight: 1.0
-            反讽识别:
+            Irony_Detection:
               weight: 1.0
               children:
                 SemEval-2018_Task_3:
                   weight: 1.0
-            隐喻识别:
+            Metaphor_Detection:
               weight: 1.0
               children:
                 VUA20:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.15
           children:
-            复杂情感识别:
+            Complex_Emotion_Recognition:
               weight: 1.0
               children:
                 EmoBenchB:
                   weight: 1.0
-    情感理解:
+    Emotion_Understanding:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.4
           children:
-            情感强度理解:
+            Emotion_Intensity_Understanding:
               weight: 1.0
               children:
                 SemEval-2018_Task_1:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.6
           children:
-            情感原因分析:
+            Emotion_Cause_Analysis:
               weight: 1.0
               children:
                 PQEmotion2:
                   weight: 1.0
                 EmoBenchC:
                   weight: 1.0
-    情感管理:
+    Emotion_Management:
       weight: 1.0
       children:
-        中级:
+        Intermediate:
           weight: 1.0
           children:
-            情感策略选择:
+            Emotion_Strategy_Selection:
               weight: 1.0
               children:
                 PQEmotion3:
                   weight: 1.0
-    情感回复:
+    Emotional_Response:
       weight: 1.0
       children:
-        中级:
+        Intermediate:
           weight: 0.7
           children:
-            共情表达:
+            Empathetic_Expression:
               weight: 1.0
               children:
                 ESConv:
@@ -267,99 +265,99 @@
                   weight: 1.0
                 PQEmotion4:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.3
           children:
-            特定场景下情感回复:
+            Context_Specific_Emotional_Response:
               weight: 1.0
               children:
                 PQEmotion5:
                   weight: 1.0
-            个性化情感回复:
+            Personalized_Emotional_Response:
               weight: 1.0
               children:
                 CPED:
                   weight: 1.0
-    综合情感智能:
+    Comprehensive_Emotional_Intelligence:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.3
           children:
-            有效沟通能力测试:
+            Effective_Communication_Test:
               weight: 1.0
               children:
                 liangbiao2:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.55
           children:
-            人际关系处理能力测试:
+            Interpersonal_Relationship_Test:
               weight: 1.0
               children:
                 liangbiao1:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.15
           children:
-            情商测试:
+            Emotional_Quotient_Test:
               weight: 1.0
               children:
                 liangbiao8:
                   weight: 1.0
                 liangbiao9:
                   weight: 1.0
-陪伴能力:
+Companionship_Ability:
   weight: 1.0
   children:
-    记忆管理能力:
+    Memory_Management:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.6
           children:
-            序列顺序回忆:
+            Sequential_Order_Recall:
               weight: 1.0
               children:
                 BookSort:
                   weight: 1.0
-        高级:
+        Advanced:
           weight: 0.4
           children:
-            长期对话回忆:
+            Long_Term_Dialogue_Recall:
               weight: 1.0
               children:
                 LongMemEval:
                   weight: 1.0
-    个性化能力:
+    Personalization_Ability:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.4
           children:
-            个性化程度:
+            Personalization_Degree:
               weight: 1.0
               children:
                 PersonaFeedback:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.6
           children:
-            个性化情感回复:
+            Personalized_Emotional_Response:
               weight: 1.0
               children:
                 CPED:
                   weight: 1.0
-价值观与安全:
+Values_and_Safety:
   weight: 1.0
   children:
-    价值观:
+    Values:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.4
           children:
-            偏见检测:
+            Bias_Detection:
               weight: 1.0
               children:
                 CrowS-Pairs:
@@ -370,45 +368,41 @@
                   weight: 1.0
                 SafetyBench7:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.6
           children:
-            道德检测:
+            Moral_Detection:
               weight: 1.0
               children:
                 SafetyBench1:
                   weight: 1.0
-    安全:
+    Safety:
       weight: 1.0
       children:
-        初级:
+        Elementary:
           weight: 0.4
           children:
-            内容安全:
+            Content_Safety:
               weight: 1.0
               children:
-                Real-Toxicity-Prompts:
-                  weight: 1.0
-                ToxiGen:
-                  weight: 1.0
                 SafetyBench3:
                   weight: 1.0
-        中级:
+        Intermediate:
           weight: 0.6
           children:
-            信息安全:
+            Information_Security:
               weight: 1.0
               children:
                 SafetyBench4:
                   weight: 1.0
-            用户安全:
+            User_Safety:
               weight: 1.0
               children:
                 SafetyBench2:
                   weight: 1.0
                 SafetyBench6:
                   weight: 1.0
-            高风险危害行为:
+            High_Risk_Harmful_Behavior:
               weight: 1.0
               children:
                 SafetyBench5:

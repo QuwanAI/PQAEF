@@ -18,26 +18,16 @@ if TYPE_CHECKING:
 
 def extract_answer(response: str) -> str:
     """
-    从模型响应中提取答案
+    Extract answer from model response
     
     Args:
-        response: 模型的原始响应
+        response: Raw response from model
         
     Returns:
-        str: 提取的答案（A、B、C等）
+        str: Extracted answer (A, B, C, etc.)
     """
-    # 使用正则表达式提取答案
-    # patterns = [
-    #     r'答案[是为]?[:：]?\s*([A-Z])',
-    #     r'选择[:：]?\s*([A-Z])',
-    #     r'([A-Z])选?项',
-    #     r'^\s*([A-Z])\s*$',
-    #     r'选项([A-Z])',  # 新增：匹配"选项A"
-    #     r'会选择选项([A-Z])',  # 新增：匹配"会选择选项A"
-    #     r'\b([A-Z])\b'
-    # ]
 
-    # 新增匹配 A-Z a-z
+    # Match A-Z a-z
     patterns = [
         r'答案[是为]?[:：]?\s*([A-Za-z])',
         r'选择[:：]?\s*([A-Za-z])',
@@ -78,7 +68,7 @@ class SingleChoiceTask(BaseTask):
             result = {
                 'question_id': sample.get('question_id', ''),
                 'scene': sample.get('scene', ''),
-                'question_text': sample.get('question_text', ''),  # 添加这一行
+                'question_text': sample.get('question_text', ''),
                 'options': sample.get('options', ''),
                 'correct_answer': sample.get('correct_answer', ''),
                 'predicted_answer': predicted_answer,
@@ -94,25 +84,25 @@ class SingleChoiceTask(BaseTask):
     def process_batch(self, batch: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         all_prompts = []
     
-        # 从prompt模板中提取所有占位符
+        # Extract all placeholders from prompt template
         placeholders = re.findall(r'\{([^}]+)\}', self.prompt_template)
         format_kwargs = {}
     
         for sample in batch:
             for placeholder in placeholders:
                 if placeholder in sample:
-                    # 直接从sample中获取值
+                    # Get value directly from sample
                     format_kwargs[placeholder] = sample[placeholder]
                 elif placeholder.startswith('option_'):
-                    # 处理选项占位符（如option_A, option_B等）
-                    option_key = placeholder.split('_')[1]  # 提取A, B, C等
+                    # Handle option placeholders (e.g. option_A, option_B)
+                    option_key = placeholder.split('_')[1]  # Extract A, B, C, etc.
                     options = sample.get('options', {})
                     if isinstance(options, dict) and option_key in options:
                         format_kwargs[placeholder] = options[option_key]
                     else:
                         format_kwargs[placeholder] = ''
                 else:
-                    # 处理其他可能的映射关系
+                    # Handle other possible mappings
                     value = ''
                     if placeholder == 'question':
                         value = sample.get('question_text', sample.get('question', ''))
@@ -121,7 +111,7 @@ class SingleChoiceTask(BaseTask):
                     elif placeholder == 'question_text':
                         value = sample.get('question_text', sample.get('question', ''))
                     elif placeholder == 'options':
-                        # 如果模板需要options字符串格式
+                        # If template needs options in string format
                         options = sample.get('options', {})
                         if isinstance(options, dict):
                             options_list = []
@@ -139,6 +129,6 @@ class SingleChoiceTask(BaseTask):
         responses = self.llm_model.process(all_prompts)
         results = self._response(responses, batch)
         
-        # 只返回_response的结果，不再在这里计算指标
+        # Only return _response results, no longer calculate metrics here
         return results
         

@@ -105,13 +105,13 @@ def preprocess_text(text: str, remove_stopwords: bool = False, stopwords: set = 
     """
     Performs text preprocessing for Chinese: segmentation, cleaning.
     """
-    # 移除URL、@用户、标点符号和数字
+    # Remove URLs, @users, punctuation and numbers
     text = re.sub(r'http\S+|@\w+|[^\u4e00-\u9fa5a-zA-Z]', ' ', text)
-    # 分词
+    # Word segmentation
     words = jieba.lcut(text.strip())
-    # 去除空字符串和单字符（可选，可以保留以分析语气词）
+    # Remove empty strings and single characters (optional, can keep for analyzing modal particles)
     words = [word for word in words if word.strip()]
-    # 去除停用词
+    # Remove stopwords
     if remove_stopwords and stopwords:
         words = [word for word in words if word not in stopwords]
     return words
@@ -181,9 +181,9 @@ def parse_score_from_string(text: str, min_val: int = 0, max_val: int = 9) -> in
 
 def get_model_response_content(response: Any) -> str:
     """
-    安全地从模型返回的多种可能格式中提取文本内容。
-    - LocalModel 返回 str
-    - ApiModel 返回 dict
+    Safely extract text content from various possible formats returned by models.
+    - LocalModel returns str
+    - ApiModel returns dict
     """
     if isinstance(response, str):
         return response
@@ -193,7 +193,7 @@ def get_model_response_content(response: Any) -> str:
         if choices and isinstance(choices, list) and len(choices) > 0:
             message = choices[0].get('message', {})
             return message.get('content', '')
-    # 如果是错误或其他格式，返回空字符串
+    # If error or other format, return empty string
     return ""
 
 
@@ -212,14 +212,14 @@ def read_jsonl(path):
 
 
 def write_json(path, obj, mode="w", encoding="utf-8", indent=4):
-    assert path.endswith(".json"), "请命名成 json"
+    assert path.endswith(".json"), "Please name it as json"
     
     with open(path, mode, encoding=encoding) as f:
         json.dump(obj, f, ensure_ascii=False, indent=indent)
   
         
 def write_jsonl(path: str, obj, mode="w", encoding="utf-8", indent=4):
-    assert path.endswith(".jsonl"), "请命名成 jsonl"
+    assert path.endswith(".jsonl"), "Please name it as jsonl"
     
     with open(path, mode, encoding=encoding) as f:
         for item in obj:

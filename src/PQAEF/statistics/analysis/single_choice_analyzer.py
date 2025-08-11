@@ -13,13 +13,13 @@ from PQAEF.constant import constant
 @register_analyzer(name="single_choice")
 class SingleChoiceAnalyzer(BaseAnalysis):
     """
-    单选题任务的分析器，计算准确率和F1分数等指标。
+    Analyzer for single-choice tasks, calculating metrics such as accuracy and F1 score.
     """
 
     def analyze(self, df: pd.DataFrame, raw_data: List[Dict[str, Any]]) -> Dict[str, Any]:
         print("INFO: [Analyzer] Running Single Choice Analysis...")
         
-        # 检查原始数据是否包含预期的键
+        # Check if raw data contains expected keys
         if not raw_data or not all('is_correct' in item for item in raw_data if isinstance(item, dict)):
             return {
                 "title": "Single Choice Analysis",
@@ -28,7 +28,7 @@ class SingleChoiceAnalyzer(BaseAnalysis):
                 "data_tables": {}
             }
         
-        # 过滤出包含is_correct字段的数据项（排除第一个统计项）
+        # Filter data items containing is_correct field (excluding the first statistical item)
         results = [item for item in raw_data if isinstance(item, dict) and 'is_correct' in item]
         
         if not results:
@@ -38,32 +38,27 @@ class SingleChoiceAnalyzer(BaseAnalysis):
                 "plots": [],
                 "data_tables": {}
             }
-        # 打印result
-        # print("INFO: [Analyzer] Single Choice Analysis Results:")
-        # print(results)
-        # print(self.config)
-        # 获取评估工具类型，默认为Accuracy
-        # 尝试从第一个结果中获取eval_tool信息
+        # Get evaluation tool type, default to Accuracy
         eval_tool = self.config.get('eval_tool') or ['Accuracy']
         
-        # 初始化metrics字典
+        # Initialize metrics dictionary
         metrics = {}
         
-        # 确保eval_tool是列表格式
+        # Ensure eval_tool is in list format
         if isinstance(eval_tool, str):
             eval_tool = [eval_tool]
         
-        # 遍历所有评估工具，计算相应指标
+        # Iterate through all evaluation tools and calculate corresponding metrics
         for tool in eval_tool:
             if tool == 'Accuracy':
                 accuracy_metrics = self._calculate_accuracy(results)
                 metrics.update(accuracy_metrics)
         
-        # 如果没有指定的评估工具，默认使用准确率
+        # If no specific evaluation tool is specified, use accuracy by default
         if not metrics:
             metrics = self._calculate_accuracy(results)
         
-        # 将指标写入JSON文件
+        # Write metrics to JSON file
         self._write_metrics_to_json(metrics)
         
         return {
@@ -75,7 +70,7 @@ class SingleChoiceAnalyzer(BaseAnalysis):
     
     def _calculate_accuracy(self, results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        计算准确率指标
+        Calculate accuracy metrics
         """
         correct_count = sum(1 for result in results if result['is_correct'])
         total_count = len(results)
@@ -85,15 +80,15 @@ class SingleChoiceAnalyzer(BaseAnalysis):
             'correct_count': correct_count,
             'total_count': total_count
         }
-        print(f"总体准确率: {accuracy['overall']:.2%}")
+        print(f"Overall accuracy: {accuracy['overall']:.2%}")
         return accuracy
             
     def _write_metrics_to_json(self, metrics: Dict[str, Any]):
         """
-        将指标写入JSON文件
+        Write metrics to JSON file
         """
         try:
-            # 构建输出文件路径（与statistical_analysis目录同级）
+            # Build output file path (at the same level as statistical_analysis directory)
             output_file = os.path.join(self.output_dir, 'result_stats.json')
             
             with open(output_file, 'w', encoding='utf-8') as f:
